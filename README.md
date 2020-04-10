@@ -59,6 +59,10 @@ export default {
 
 ```
 
-# License
+## How it works
+
+This plugin is implemented in `provide`, `inject` and `computed` in vue@2. Since the reative context works like `computed` properties, it won't make additional performance overhead significantly.
+
+## License
 
 MIT. See [LICENSE](./LICENSE).
