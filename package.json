@@ -1,0 +1,15 @@
+{
+  "name": "vue-reactive-context",
+  "version": "0.1.0-beta.1",
+  "description": "Reactive provide/inject for vue@2",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "keywords": [
+    "vue",
+    "reative",
+    "provide",
+    "inject"
+  ],
+  "author": "CyanSalt",
+  "license": "MIT"
+}
