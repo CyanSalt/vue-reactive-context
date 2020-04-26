@@ -53,6 +53,7 @@ export default {
           const injected = {
             $_reactive: {
               from: '$_reactive',
+              default: undefined,
             },
           }
           this.$options.inject = mergeInject(
