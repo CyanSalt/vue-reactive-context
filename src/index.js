@@ -2,6 +2,7 @@ export default {
   install(Vue, {
     provideName = 'provideReactive',
     injectName = 'injectReactive',
+    contextPrefix = '$_reactive_',
   } = {}) {
     const {
       provide: mergeProvide,
@@ -13,15 +14,11 @@ export default {
         // Resolve `provideReactive`
         const provide = this.$options[provideName]
         if (provide) {
-          const context = Object.keys(provide).reduce((context, key) => {
-            context[key] = undefined
+          const provided = Object.keys(provide).reduce((context, key) => {
+            const reactiveKey = `${contextPrefix}${key}`
+            context[reactiveKey] = Vue.observable({value: undefined})
             return context
           }, {})
-          const reactiveContext = Vue.observable(context)
-          // this.$_reactiveContext = reactiveContext
-          const provided = {
-            $_reactive: reactiveContext,
-          }
           this.$options.provide = mergeProvide(
             this.$options.provide,
             provided,
@@ -32,11 +29,11 @@ export default {
             const unwatchFns = []
             for (const key of Object.keys(provide)) {
               const unwatch = this.$watch(provide[key], function (value, oldValue) {
-                if (value !== oldValue) reactiveContext[key] = value
-              }, { immediate: true })
+                if (value !== oldValue) provided[`${contextPrefix}${key}`].value = value
+              }, {immediate: true})
               unwatchFns.push(unwatch)
             }
-            this.$on('hook:beforeDestroy', () => {
+            this.$once('hook:beforeDestroy', () => {
               unwatchFns.forEach(unwatch => unwatch())
             })
           })
@@ -46,16 +43,15 @@ export default {
         if (inject) {
           if (Array.isArray(inject)) {
             inject = inject.reduce((object, key) => {
-              object[key] = { from: key }
+              object[key] = {from: key}
               return object
             }, {})
           }
-          const injected = {
-            $_reactive: {
-              from: '$_reactive',
-              default: undefined,
-            },
-          }
+          const injected = Object.keys(inject).reduce((context, key) => {
+            const reactiveKey = `${contextPrefix}${key}`
+            context[reactiveKey] = {from: reactiveKey}
+            return context
+          }, {})
           this.$options.inject = mergeInject(
             this.$options.inject,
             injected,
@@ -65,10 +61,8 @@ export default {
           const computed = Object.keys(inject).reduce((object, key) => {
             object[key] = function () {
               const value = inject[key]
-              if (this.$_reactive && (value.from in this.$_reactive)) {
-                return this.$_reactive[value.from]
-              }
-              return value.default
+              const reactiveKey = `${contextPrefix}${value.from}`
+              return this[reactiveKey] ? this[reactiveKey].value : value.default
             }
             return object
           }, {})
