@@ -16,7 +16,7 @@ export default {
         if (provide) {
           const provided = Object.keys(provide).reduce((context, key) => {
             const reactiveKey = `${contextPrefix}${key}`
-            context[reactiveKey] = Vue.observable({value: undefined})
+            context[reactiveKey] = Vue.observable({ value: undefined })
             return context
           }, {})
           this.$options.provide = mergeProvide(
@@ -28,9 +28,15 @@ export default {
           this.$once('hook:created', () => {
             const unwatchFns = []
             for (const key of Object.keys(provide)) {
-              const unwatch = this.$watch(provide[key], function (value, oldValue) {
-                if (value !== oldValue) provided[`${contextPrefix}${key}`].value = value
-              }, {immediate: true})
+              const unwatch = this.$watch(
+                provide[key],
+                function (value, oldValue) {
+                  if (value !== oldValue) {
+                    provided[`${contextPrefix}${key}`].value = value
+                  }
+                },
+                { immediate: true }
+              )
               unwatchFns.push(unwatch)
             }
             this.$once('hook:beforeDestroy', () => {
@@ -43,13 +49,13 @@ export default {
         if (inject) {
           if (Array.isArray(inject)) {
             inject = inject.reduce((object, key) => {
-              object[key] = {from: key}
+              object[key] = { from: key }
               return object
             }, {})
           }
           const injected = Object.keys(inject).reduce((context, key) => {
             const reactiveKey = `${contextPrefix}${key}`
-            context[reactiveKey] = {from: reactiveKey}
+            context[reactiveKey] = { from: reactiveKey }
             return context
           }, {})
           this.$options.inject = mergeInject(
@@ -61,7 +67,8 @@ export default {
           const computed = Object.keys(inject).reduce((object, key) => {
             object[key] = function () {
               const value = inject[key]
-              const reactiveKey = `${contextPrefix}${value.from}`
+              const from = value.from != null ? value.from : key
+              const reactiveKey = `${contextPrefix}${from}`
               return this[reactiveKey] ? this[reactiveKey].value : value.default
             }
             return object
